@@ -1,0 +1,164 @@
+﻿function VypisBOD()
+{
+	var zavriGumpy = function()
+	{
+		var gumpCount = Orion.GumpCount();
+
+		for(var i = gumpCount - 1; i >= 0; i--)
+		{
+			var gump = Orion.GetGump(i);
+			
+			gump.Close();
+		}
+	}
+	
+	var vypisGumpy = function()
+	{
+		var gumpCount = Orion.GumpCount();
+
+		for(var i = 0; i < gumpCount; i++)
+		{
+			var gump = Orion.GetGump(i);
+
+			var commandList = gump.CommandList();
+			
+			commandList.forEach(function(text)
+			{
+				TextWindow.Print(text);
+			});
+		}
+	}
+	
+	var najdiGumpPodleCommandu = function(text)
+	{
+		var gumpCount = Orion.GumpCount();
+
+		for(var i = 0; i < gumpCount; i++)
+		{
+			var gump = Orion.GetGump(i);
+			
+			if(!gump || gump.Replayed()) continue;
+		
+			var commandList = gump.CommandList();
+			
+			for(var j = 0; j < commandList.length; j++)
+			{
+				var entry = commandList[j];
+			
+				if(entry.indexOf(text) < 0) continue;
+				
+				return gump;
+			}
+		}
+		
+		return null;
+	}
+	
+	var najdiV = function(kde, co)
+	{
+		var list = Orion.FindTypeEx('any', 'any', kde);
+		
+		for(var i = 0; i < list.length; i++)
+		{
+			var entry = list[i];
+			
+			if(co(entry)) return entry;
+		}
+			
+		return null;
+	}
+	
+	var najdiVBatohu = function(co)
+	{
+		return najdiV('backpack', co);
+	}
+	
+	var pockejNa = function(akce, timeout)
+	{
+		var counter = 0;
+		
+		var vysledek = null;
+	
+		while(counter < timeout)
+		{
+			Orion.Wait(100);
+			
+			counter += 100;
+			
+			vysledek = akce();
+			
+			if(vysledek != null && vysledek != 0) return vysledek;
+		}
+
+		return vysledek;
+	}
+	
+	zavriGumpy();
+	
+	TextWindow.Open();
+	
+	TextWindow.Clear();
+	
+	var items = Orion.FindTypeEx('any', 'any', backpack);
+		
+	for(var i = 0; i < items.length; i++)
+	{
+		if(items[i].Properties().indexOf("Bulk Order Book") < 0) continue;
+	
+		var book = items[i];
+		
+		Orion.Print("Book " + book.Serial());
+			
+		Orion.UseObject(book.Serial());
+	
+		var page = 0;
+		
+		while((gump = pockejNa(function(){return najdiGumpPodleCommandu("button 225 416 4005 4007 1 0 3");}, 500)))
+		{
+			TextWindow.Print("BEGIN " + page);
+			
+			var textList = gump.TextList();
+				
+			textList.forEach(function(text)
+			{
+				TextWindow.Print(text);
+			});
+		
+			var commandList = gump.CommandList();
+			
+			commandList.forEach(function(text)
+			{
+				TextWindow.Print(text);
+			});
+			
+			gump.Select(Orion.CreateGumpHook(3));
+			
+			page++;
+		}
+		
+		gump =  najdiGumpPodleCommandu("button 75 416 4014 4016 1 0 2 ");
+		
+		if(gump != null)
+		{
+			TextWindow.Print("BEGIN " + page);
+			
+			var textList = gump.TextList();
+				
+			textList.forEach(function(text)
+			{
+				TextWindow.Print(text);
+			});
+			
+			var commandList = gump.CommandList();
+			
+			commandList.forEach(function(text)
+			{
+				TextWindow.Print(text);
+			});
+		}
+	}
+	
+	TextWindow.Print("END");
+	
+	Orion.Print("Hotovo");
+}
